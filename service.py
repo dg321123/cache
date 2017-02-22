@@ -1,15 +1,23 @@
 import argparse
+import primed_cache
 
 from flask import Flask, jsonify, make_response, abort
 
-from request_data import request_data
+from cache import Cache
 
 app = Flask(__name__)
+
+_cache = Cache()
 
 
 @app.errorhandler(404)
 def not_found(error):
     return make_response(jsonify({'error': 'Not found'}), 404)
+
+
+@app.errorhandler(500)
+def internal_server_error(error):
+    return make_response(jsonify({'error': 'Internal server error'}), 500)
 
 
 @app.route('/healthcheck', methods=['GET'])
@@ -22,7 +30,8 @@ def healthcheck():
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>', methods=['GET'])
 def get_task(path):
-    [status_code, response] = request_data("api.github.com/", path)
+    path = '/' + path
+    [status_code, response] = _cache.get(path)
     if status_code == 200:
         return jsonify(''.join(response))
     else:
@@ -44,4 +53,6 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    app.run(debug=True, port=args.port)
+    _cache = primed_cache.get_primed_cache()
+
+    app.run(debug=False, port=args.port)

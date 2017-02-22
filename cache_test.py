@@ -1,4 +1,4 @@
-from cache import Cache, Observer, Attributes
+from cache import Cache, Observer, Attributes, MAX_TIME_TO_EXPIRY_SECONDS
 from time import sleep
 import json
 
@@ -25,8 +25,10 @@ def get_index_last_updated(pages):
 def get_index_open_issues(pages):
     return get_index(pages, 'open_issues_count')
 
+
 def get_index_stars(pages):
     return get_index(pages, 'stargazers_count')
+
 
 def get_index_watchers(pages):
     return get_index(pages, 'watchers_count')
@@ -42,7 +44,7 @@ default_val = ''
 default_attributes = Attributes()
 cache = Cache()
 
-# Priming
+# Priming the cache
 print 'priming cache'
 cache.put('/', default_val, -10)
 cache.put('/orgs/Netflix', default_val, -10)
@@ -64,6 +66,8 @@ cache.add_observer('/orgs/Netflix/repos', stars_observer)
 cache.put('/view/top/N/watchers', default_val, -10)
 cache.add_observer('/orgs/Netflix/repos', watchers_observer)
 
+
+# Requesting data from cache
 [status_code, value] = cache.get('/')
 [status_code, value] = cache.get('/orgs/Netflix/repos')
 [status_code, forks] = cache.get('/view/top/N/forks')
@@ -78,6 +82,16 @@ print open_issues
 print stars
 print watchers
 
+[status_code, value] = cache.get('/')
+[status_code, value] = cache.get('/orgs/Netflix/repos')
+[status_code, forks] = cache.get('/view/top/N/forks')
+[status_code, last_updated] = cache.get('/view/top/N/last_updated')
+[status_code, open_issues] = cache.get('/view/top/N/open_issues')
+[status_code, stars] = cache.get('/view/top/N/stars')
+[status_code, watchers] = cache.get('/view/top/N/watchers')
+
+
+sleep (MAX_TIME_TO_EXPIRY_SECONDS)
 
 [status_code, value] = cache.get('/')
 [status_code, value] = cache.get('/orgs/Netflix/repos')
@@ -87,17 +101,7 @@ print watchers
 [status_code, stars] = cache.get('/view/top/N/stars')
 [status_code, watchers] = cache.get('/view/top/N/watchers')
 
-sleep (2)
-
-[status_code, value] = cache.get('/')
-[status_code, value] = cache.get('/orgs/Netflix/repos')
-[status_code, forks] = cache.get('/view/top/N/forks')
-[status_code, last_updated] = cache.get('/view/top/N/last_updated')
-[status_code, open_issues] = cache.get('/view/top/N/open_issues')
-[status_code, stars] = cache.get('/view/top/N/stars')
-[status_code, watchers] = cache.get('/view/top/N/watchers')
-
-sleep(1)
+sleep(MAX_TIME_TO_EXPIRY_SECONDS - 1)
 
 [status_code, value] = cache.get('/')
 [status_code, value] = cache.get('/orgs/Netflix/repos')
