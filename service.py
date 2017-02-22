@@ -1,9 +1,12 @@
 import argparse
 import primed_cache
+import json
 
 from flask import Flask, jsonify, make_response, abort
 
 from cache import Cache
+
+from response_filter import response_filter, path_to_parts
 
 app = Flask(__name__)
 
@@ -30,10 +33,11 @@ def healthcheck():
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>', methods=['GET'])
 def get_task(path):
-    path = '/' + path
-    [status_code, response] = _cache.get(path)
+    [key, filter, count] = path_to_parts(path)
+    [status_code, value] = _cache.get(key)
     if status_code == 200:
-        return jsonify(''.join(response))
+        list_response = response_filter(value, filter, count)
+        return jsonify(list_response)
     else:
         abort(status_code)
 

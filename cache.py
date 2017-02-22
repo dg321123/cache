@@ -72,7 +72,6 @@ class Cache:
                 if attributes.actor.key:
                     query_key = attributes.actor.key
 
-                value = []
                 [status_code, value] = self.get_fresh_copy(query_key)
                 if status_code == 200:
                     self.put(query_key, value, MAX_TIME_TO_EXPIRY_SECONDS)
