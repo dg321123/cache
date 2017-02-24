@@ -2,6 +2,9 @@ from cache import Cache, Observer
 import json
 
 
+# get_index method is the registered callback method to refresh the views.
+# You may create other such callback refresher methods if you want to cache
+# other information.
 def get_index(pages, key):
     collection = []
     for page in pages:

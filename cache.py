@@ -4,18 +4,24 @@ from request_data import request_data
 MAX_TIME_TO_EXPIRY_SECONDS = 10
 
 
+# Using the observer pattern to keep the derived views in sync with the
+# dependent cache
 class Observer:
     def __init__(self, observers_key, refresh_method):
         self.key = observers_key
         self.refresh = refresh_method
 
 
+# Reverse observer pattern to refresh the dependent cache, in cases where the
+# Observer has been requested and is stale. I call it the  Actor pattern.
 class Actor:
     def __init__(self, actors_key):
         self.key = actors_key
 
 
 # The class attributes assumes that the clock skew will never exceed 10 seconds
+# You may add other attributes such as the frequency, timestamp of the last access,
+# etc. to implement different cache eviction strategies.
 class Attributes:
     def __init__(self):
         self.observers = []
@@ -23,6 +29,8 @@ class Attributes:
         self.expiry = datetime.now() + timedelta(seconds=-10)
 
 
+# A simple basic cache which caches only a select set of keys and never evicts any
+# key. This
 class Cache:
     def __init__(self):
         self.cache = {}
