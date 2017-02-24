@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
 from request_data import request_data
+from leader_elector import LeaderElector
+import app_config
 
 MAX_TIME_TO_EXPIRY_SECONDS = 10
 
@@ -99,6 +101,17 @@ class Cache:
 
     # TODO implement leader lookup.
     def get_fresh_copy(self, key):
-        return request_data(self.backup_host, key)
+        leader_value = app_config.leader_elector.get_leader()
+        print leader_value.__dict__
+        print app_config.process_lock_value.__dict__
+
+        if leader_value.__dict__ == app_config.process_lock_value.__dict__:
+            leader = self.backup_host
+        else:
+            leader = leader_value.fqdn + ':' + str(leader_value.port)
+
+        print 'Leader is ', leader
+
+        return request_data(leader, key)
 
 

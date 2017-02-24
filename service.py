@@ -1,12 +1,17 @@
 import argparse
 import primed_cache
-import json
+import app_config
+import signal
 
 from flask import Flask, jsonify, make_response, abort
 
 from cache import Cache
 
 from response_filter import response_filter, path_to_parts
+
+from process_lock_value_type import ProcessLockValueType
+
+from leader_elector import LeaderElector
 
 app = Flask(__name__)
 
@@ -41,7 +46,6 @@ def get_task(path):
     else:
         abort(status_code)
 
-
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
@@ -57,6 +61,22 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
+    app_config.service_port = args.port
+    app_config.process_lock_value = ProcessLockValueType(
+        app_config.service_fqdn, app_config.service_pid, app_config.service_port)
+
+    print app_config.process_lock_value.__dict__
+
+    app_config.leader_elector = LeaderElector(redis_config=app_config.redis_config,
+                                              app_name=app_config.app_name,
+                                              process_lock_value=app_config.process_lock_value,
+                                              process_lock_ttl=app_config.process_lock_ttl_sec,
+                                              retry_interval_ms=app_config.retry_interval_ms)
+
+    app_config.t.start()
+
     _cache = primed_cache.get_primed_cache()
 
-    app.run(debug=False, port=args.port)
+    signal.signal(signal.SIGINT, app_config.signal_handler)
+
+    app.run(debug=False, port=args.port, ssl_context='adhoc')

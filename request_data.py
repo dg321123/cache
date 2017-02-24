@@ -35,7 +35,7 @@ def request_data(endpoint, request):
     response = []
 
     while next_link != '':
-        r = requests.get(next_link, headers=headers)
+        r = requests.get(next_link, headers=headers, verify=False)
 
         if r.status_code == 200:
 
