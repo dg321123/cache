@@ -5,6 +5,7 @@ import app_config
 from linkparser import LinkParser
 from log import logger
 
+
 def get_auth_token():
 
     if 'GITHUB_API_TOKEN' not in os.environ:
