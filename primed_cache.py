@@ -69,7 +69,6 @@ def get_primed_cache():
     cache.put('/view/watchers', default_val, -10)
     cache.add_observer('/orgs/Netflix/repos', watchers_observer)
 
-
     # Priming the cache by requesting data
     [status_code, value] = cache.get('/')
     [status_code, value] = cache.get('/orgs/Netflix')

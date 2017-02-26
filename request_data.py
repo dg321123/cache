@@ -1,8 +1,9 @@
 import os
 import requests
+import app_config
 
 from linkparser import LinkParser
-
+from log import logger
 
 def get_auth_token():
 
@@ -24,7 +25,7 @@ def get_auth_token():
 #   2. Since some responses can be very large, sending requests for many pages
 #      at once (after finding the number of pages from the first response) will
 #      speed things up significantly.
-def request_data(endpoint, request):
+def request_data(endpoint, request, timeout):
 
     next_link = 'https://' + endpoint + request
 
@@ -35,7 +36,15 @@ def request_data(endpoint, request):
     response = []
 
     while next_link != '':
-        r = requests.get(next_link, headers=headers, verify=False)
+
+        try:
+            r = requests.get(next_link, headers=headers, verify=False, timeout=(3, timeout))
+        except requests.exceptions.Timeout, e:
+            logger.warn('Request %s timed out after %d', next_link, timeout)
+            return [598, response]
+        except requests.exceptions.ConnectionError, e:
+            logger.warn(e)
+            return [500, response]
 
         if r.status_code == 200:
 
@@ -49,6 +58,24 @@ def request_data(endpoint, request):
                 next_link = ''
 
         else:
+            logger.warn('Failed request with status code %d', r.status_code)
             return [r.status_code, response]
 
     return [200, response]
+
+
+def get_fresh_copy(key):
+    leader_value = app_config.leader_elector.get_leader()
+    logger.debug('Current leader is %s', leader_value.__dict__)
+    logger.debug('Current process is %s', app_config.process_lock_value.__dict__)
+
+    if leader_value.__dict__ == app_config.process_lock_value.__dict__:
+        source = app_config.golden_source
+        timeout = app_config.leader_timeout
+    else:
+        source = leader_value.fqdn + ':' + str(leader_value.port)
+        timeout = app_config.slave_timeout
+
+    logger.debug('Source endpoint is %s, timeout is %d', source, timeout)
+
+    return request_data(source, key, timeout)

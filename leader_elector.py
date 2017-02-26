@@ -7,6 +7,8 @@ import redis
 
 import unmarshal_json
 
+from log import logger
+
 from process_lock_value_type import ProcessLockValueType
 
 
@@ -27,12 +29,12 @@ class LeaderElector:
         # If the key is not yet set to expire, there is no point retrying now.
         # This is bound to lead to thundering herd problem. However, it's still
         # better than hitting the DB more often.
-        logging.debug(self.time_to_refresh)
+        logger.debug('time to refresh: %s', self.time_to_refresh)
         if datetime.datetime.now() < self.time_to_refresh:
-            logging.debug('Returning from cache.')
+            logger.debug('Returning leadership from cache. %s', self.current_leader)
             return self.current_leader
 
-        logging.debug('Checking redis')
+        logger.debug('Checking redis for leadership')
 
         # Get a handle to Redis
         r = redis.Redis(connection_pool=self.redis_pool)
@@ -49,7 +51,7 @@ class LeaderElector:
             is_leader = r.set(self.process_lock_key, json.dumps(self.process_lock_value.__dict__),
                               ex=self.process_lock_ttl, nx=True)
             time_to_refresh_delta = datetime.timedelta(seconds=self.process_lock_ttl)
-            logging.debug('is_leader = ' + str(is_leader))
+            logger.debug('Succeeded in writing leadership record = ' + str(is_leader))
 
             if not is_leader:
                 # If set didn't succeed, read the value and decode it.
@@ -63,7 +65,11 @@ class LeaderElector:
                     r.expire(self.process_lock_key, self.process_lock_ttl)
                 else:
                     ttl = r.ttl(self.process_lock_key)
-                    time_to_refresh_delta = datetime.timedelta(seconds=ttl)
+                    # Sometimes r.ttl returns a type thats not compatible with datatime.timedelta.
+                    # This if block resolves that issue.
+                    if not ttl:
+                        ttl = 0
+                    time_to_refresh_delta = datetime.timedelta(seconds=int(ttl))
 
             if is_leader or isinstance(decoded_process_lock_value, ProcessLockValueType):
                 succeeded = True
@@ -71,7 +77,7 @@ class LeaderElector:
 
             # If we failed to determine leadership, back-off and retry.
             if not succeeded:
-                logging.info('Did not succeed in getting a leader. Will retry')
+                logger.info('Did not succeed in getting a leader. Will retry')
                 retries *= 2
                 time.sleep(self.retry_interval_ms * retries / 1000)
 
