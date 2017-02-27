@@ -72,3 +72,42 @@ Ideally add this to your startup script.
    ```
    python service.py -p <port number>
    ```
+   
+## Known issues / Design choices
+1. It is necessary to wait for the leadership record in Redis to be fresh 
+   before the process can be brought up successfully, since at start up the 
+   record refreshes its cache. 
+   
+1. The code is tightly coupled to Redis. Ideally, there should have been an
+   interface so that replacing Redis with another key value pair would be 
+   simpler.
+1. The /healthcheck is representative of 
+    1. the success / failure of the connection while processing the most recent
+       request and 
+    1. also the success / failure of the call to find the leader. 
+    
+   This means that if the service is reporting that it is unhealthy due to 
+   connection failure while getting results from say github it will continue to
+   do so until the connection is successfully established for another request. 
+   Therefore, we can add process to probe the service when it reports 
+   healthcheck failures. 
+   
+   Healthcheck failures due to the failure to find the leader auto reset when 
+   the leader is successfully determined because the service periodically polls
+   Redis for this information. 
+   
+1. The leadership implementation is highly simple and critically dependent on 
+   the availability of the database. One may look into Paxos or Raft for leader
+   election algorithms without single point for failure.
+   
+1. As a design choice, I've chosen to return a stale entry when proxing the 
+   request via the leader or github fails. This may not be what you want for 
+   your usecase. If so, you can modify cache.py to comment out the following 
+   
+   ```python
+   # If the request failed, should we return what we have? Only if we were
+   # able to refresh the value for the key at least once.
+   if status_code != 200 and attributes.refreshed:
+       logger.debug('Request failed. Returning stale entry')
+       status_code = 200
+   ```
