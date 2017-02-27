@@ -1,8 +1,9 @@
-# This file contains the configuration variables shared across the application
+# This file contains the configuration / global variables shared across the application
 
 import os
 import sys
 import time
+from datetime import datetime
 from redis_config_type import RedisConfigType
 from process_lock_value_type import ProcessLockValueType
 from leader_elector import LeaderElector
@@ -45,9 +46,18 @@ terminate_leader_elector_hb = False
 
 
 def heartbeat():
+    global time_of_last_leader_sync
+    global terminate_leader_elector_hb
+
     while True and not terminate_leader_elector_hb:
-        leader = leader_elector.get_leader()
-        print leader.__dict__
+        try:
+            leader = leader_elector.get_leader()
+            print leader.__dict__
+            time_of_last_leader_sync = datetime.now()
+        except:
+            e = sys.exc_info()[0]
+            print "Caught exception while heart beating leader election. ", e
+            pass
         time.sleep(process_lock_heartbeat_interval_sec)
 
 
@@ -55,7 +65,15 @@ t = Thread(target=heartbeat)
 
 
 def signal_handler(signal, handler):
-        global terminate_leader_elector_hb
-        terminate_leader_elector_hb = True
-        t.join(None)
-        sys.exit(0)
+    global terminate_leader_elector_hb
+    terminate_leader_elector_hb = True
+    t.join(None)
+    sys.exit(0)
+
+# Request connection failure
+request_connection_failure = True
+
+# The most recent time the cacher was able to determine the leader. This is 
+# approximately true.
+time_of_last_leader_sync = 0
+

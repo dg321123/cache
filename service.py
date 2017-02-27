@@ -1,22 +1,17 @@
 import argparse
 import app_config
 import primed_cache
+import redis
+import requests
 import signal
 
 from cache import Cache
-
+from datetime import datetime, timedelta
 from flask import Flask, jsonify, make_response, abort
-
 from leader_elector import LeaderElector
-
 from log import logger
-
-from response_filter import response_filter, path_to_parts
-
-from requests import exceptions
-
 from process_lock_value_type import ProcessLockValueType
-
+from response_filter import response_filter, path_to_parts
 
 app = Flask(__name__)
 
@@ -35,6 +30,12 @@ def internal_server_error(error):
 
 @app.route('/healthcheck', methods=['GET'])
 def healthcheck():
+    now = datetime.now()
+
+    if now - app_config.time_of_last_leader_sync > timedelta(seconds=app_config.process_lock_ttl_sec) \
+            or app_config.request_connection_failure:
+        return abort(404)
+
     return jsonify("Healthy")
 
 
@@ -52,6 +53,7 @@ def get_task(path):
         logger.debug('Failed request. status code %d', status_code)
         abort(status_code)
 
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
@@ -67,24 +69,27 @@ if __name__ == '__main__':
 
     logger.debug("process_log_value = %s", app_config.process_lock_value.__dict__)
 
+    # Lets register SIGINT before we start the leader election thread.
+    signal.signal(signal.SIGINT, app_config.signal_handler)
+
     app_config.leader_elector = LeaderElector(redis_config=app_config.redis_config,
                                               app_name=app_config.app_name,
                                               process_lock_value=app_config.process_lock_value,
                                               process_lock_ttl=app_config.process_lock_ttl_sec,
                                               retry_interval_ms=app_config.retry_interval_ms)
 
-    # Lets register SIGINT before we start the thread.
-    signal.signal(signal.SIGINT, app_config.signal_handler)
     app_config.t.start()
 
-    # Don't startup if unable to prime the cache entries. Ideally there will be a 
+    # Don't startup if unable to prime the cache entries. Ideally we should have a 
     # process nanny to detect this failure and retry starting up the process. We 
-    # could introduce  that logic here, but since the nanny can be useful for other
-    # processes too and also keeping it separate helps with separation of concerns. 
+    # could introduce that logic in this package, but the nanny can be useful for 
+    # other processes too and also keeping it separate helps with separation of 
+    # concerns. 
     try:
+        logger.debug('Priming cache')
         _cache = primed_cache.get_primed_cache()
         retry = False
-    except exceptions.ConnectionError, e:
+    except (requests.exceptions.ConnectionError, redis.exceptions.ConnectionError) as e:
         logger.error(e)
         app_config.terminate_leader_elector_hb = True
         app_config.t.join(None)

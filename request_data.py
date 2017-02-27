@@ -1,7 +1,9 @@
+import app_config
 import os
 import requests
-import app_config
+import sys
 
+from datetime import datetime
 from linkparser import LinkParser
 from log import logger
 
@@ -40,12 +42,15 @@ def request_data(endpoint, request, timeout):
 
         try:
             r = requests.get(next_link, headers=headers, verify=False, timeout=(3, timeout))
-        except requests.exceptions.Timeout, e:
+        except requests.exceptions.Timeout as e:
             logger.warn('Request %s timed out after %d', next_link, timeout)
             return [598, response]
-        except requests.exceptions.ConnectionError, e:
-            logger.warn(e)
-            return [500, response]
+        except requests.exceptions.ConnectionError as e:
+            logger.error('Caught %s', e.message)
+            app_config.request_connection_failure = True
+            raise
+
+        app_config.request_connection_failure = False
 
         if r.status_code == 200:
 
@@ -67,8 +72,6 @@ def request_data(endpoint, request, timeout):
 
 def get_fresh_copy(key):
     leader_value = app_config.leader_elector.get_leader()
-    logger.debug('Current leader is %s', leader_value.__dict__)
-    logger.debug('Current process is %s', app_config.process_lock_value.__dict__)
 
     if leader_value.__dict__ == app_config.process_lock_value.__dict__:
         source = app_config.golden_source
