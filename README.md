@@ -72,9 +72,3 @@ Ideally add this to your startup script.
    ```
    python service.py -p <port number>
    ```
-
-## Known issues
-1. The service runs using an adhoc ssl_context which creates a self signed 
-   certificate. The purpose is to mock the real work behavior. 
-   
-   
