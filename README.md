@@ -1,20 +1,20 @@
 #Highly available caching service
 This is my attempt at putting together a simple, highly available, caching
 service. The current behavior of this service is a bit peculiar, in that the
-keys that you want to cache must be registered with the service at startup. No
-entries can be added or removed at a later time without reconfiguring and
-restarting the service. Although, this is the behavior at this time, adding the
-ability to register more keys at runtime is trivial. Also, one may quite easily
-implement the 'remove' functionality.
+keys that you want to cache must be registered with the service at startup. At
+this time entries can only be added or removed by reconfiguring and restarting 
+the service. Although, this is the current behavior, adding the ability to 
+register more keys at runtime is trivial. Also, one may quite easily implement 
+the 'remove' functionality.
 
 ##Dependencies
 I've built and tested this service on Linux (Ubuntu 16.04.2 LTS) on a 64-bit
 platform with the following:
 
-1. Python 2.7.12
-1. pip 9.0.1
-1. Redis server v=3.2.7
-1. virtualenv 15.0.1
+1. [Python 2.7.12](https://www.python.org/downloads/)
+1. [pip 9.0.1](https://pip.pypa.io/en/stable/installing/)
+1. [Redis server 3.2.7](https://redis.io/topics/quickstart)
+1. [virtualenv 15.0.1](https://virtualenv.pypa.io/en/stable/installation/)
 
 
 ##Installation
