@@ -17,14 +17,14 @@ redis_db = 0
 redis_config = RedisConfigType(redis_hostname, redis_port, redis_db)
 
 # Configuration of the service
-service_fqdn = '127.0.0.1'
+service_fqdn = 'http://127.0.0.1'
 service_port = 5000
 service_pid = os.getpid()
 
 process_lock_value = ProcessLockValueType(service_fqdn, service_pid, service_port)
 
 # Cacher configuration
-golden_source = 'api.github.com'
+golden_source = 'https://api.github.com'
 max_time_to_expiry_seconds = 10
 leader_timeout = 3
 slave_timeout = 0.1

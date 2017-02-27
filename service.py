@@ -95,4 +95,4 @@ if __name__ == '__main__':
         app_config.t.join(None)
         exit(1)
 
-    app.run(debug=False, port=args.port, ssl_context='adhoc')
+    app.run(debug=False, port=args.port)

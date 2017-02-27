@@ -30,7 +30,7 @@ def get_auth_token():
 #      speed things up significantly.
 def request_data(endpoint, request, timeout):
 
-    next_link = 'https://' + endpoint + request
+    next_link = endpoint + request
 
     token = get_auth_token()
 
@@ -41,7 +41,7 @@ def request_data(endpoint, request, timeout):
     while next_link != '':
 
         try:
-            r = requests.get(next_link, headers=headers, verify=False, timeout=(3, timeout))
+            r = requests.get(next_link, headers=headers, timeout=(3, timeout))
         except requests.exceptions.Timeout as e:
             logger.warn('Request %s timed out after %d', next_link, timeout)
             return [598, response]
