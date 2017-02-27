@@ -111,3 +111,8 @@ Ideally add this to your startup script.
        logger.debug('Request failed. Returning stale entry')
        status_code = 200
    ```
+   
+1. The fact that heartbeat for leader elector and the method for signal handler
+   are in app_config.py is *ugly*. This *must* be corrected. The correction may not
+   be trivial because while doing so must not introduce cyclical imports. I am 
+   too sleepy now to do it right. 
