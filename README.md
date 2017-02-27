@@ -12,9 +12,9 @@ I've built and tested this service on Linux (Ubuntu 16.04.2 LTS) on a 64-bit
 platform with the following:
 
 1. [Python 2.7.12](https://www.python.org/downloads/)
-1. [pip 9.0.1](https://pip.pypa.io/en/stable/installing/)
+1. [Pip 9.0.1](https://pip.pypa.io/en/stable/installing/)
 1. [Redis server 3.2.7](https://redis.io/topics/quickstart)
-1. [virtualenv 15.0.1](https://virtualenv.pypa.io/en/stable/installation/)
+1. [Virtualenv 15.0.1](https://virtualenv.pypa.io/en/stable/installation/)
 
 
 ##Installation
