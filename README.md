@@ -52,11 +52,9 @@ platform with the following:
    ```
 Ideally add this to your startup script.
 
-1. Start the redis server
-
-   ```
-   redis-server&
-   ```
+1. Start the redis server. Installation guidelines for Redis are at 
+   https://redis.io/topics/quickstart. The README.md file has necessary 
+   information regarding configuring and starting up an instance. 
 
 1. The service uses the following configuration for Redis
 
@@ -97,8 +95,9 @@ Ideally add this to your startup script.
    Redis for this information. 
    
 1. The leadership implementation is highly simple and critically dependent on 
-   the availability of the database. One may look into Paxos or Raft for leader
-   election algorithms without single point for failure.
+   the availability of the database. One may look into Paxos or 
+   [Raft](https://raft.github.io/) for leader election algorithms without single
+   point for failure.
    
 1. As a design choice, I've chosen to return a stale entry when proxing the 
    request via the leader or github fails. This may not be what you want for 
