@@ -79,6 +79,7 @@ Ideally add this to your startup script.
 1. The code is tightly coupled to Redis. Ideally, there should have been an
    interface so that replacing Redis with another key value pair would be 
    simpler.
+   
 1. The /healthcheck is representative of 
     1. the success / failure of the connection while processing the most recent
        request and 
@@ -112,6 +113,23 @@ Ideally add this to your startup script.
    ```
    
 1. The fact that heartbeat for leader elector and the method for signal handler
-   are in app_config.py is *ugly*. This *must* be corrected. The correction may not
-   be trivial because while doing so must not introduce cyclical imports. I am 
-   too sleepy now to do it right. 
+   are in `app_config.py` is *ugly*. This *must* be corrected. In fact leader 
+   elector must be a singleton in this context with static methods.
+   
+1. The tests in api_test_suite.sh are very fragile. Ideally, the calls to the 
+   golden source (api.github.com) should be mocked so that the test data does 
+   not change. Also, mocking will make it possible for us to see how the 
+   service behaves with changing data (does it actually refresh cache?).
+   
+1. Logging could be better configured. I should look into the best practices 
+   for logging in Python. Currently, only once process's log goes into the log
+   file which is not very useful. If you happen to run multiple instance of 
+   the service on the same machine, the logs for other instances are lost. For 
+   now, one can redirect stdout and stderr to a file at the time of starting 
+   the server. 
+   
+1. It would be nice if the service emitted metrics about say the latency so we
+   could measure the performance p50, p99, p100 etc. This should also be fairly
+   simple. We need to use the constructor destructor concept which starts the 
+   clock in the constructor and stop and emits the metric in the destructor.
+   
