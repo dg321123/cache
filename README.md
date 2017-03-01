@@ -1,4 +1,4 @@
-#Highly available caching service
+#~~Highly~~ ~~available~~ Horizontally scalable caching service
 This is my attempt at putting together a simple, highly available, caching
 service. The current behavior of this service is a bit peculiar, in that the
 keys that you want to cache must be registered with the service at startup. At
