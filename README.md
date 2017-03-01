@@ -1,5 +1,5 @@
 #~~Highly~~ ~~available~~ Horizontally scalable caching service
-This is my attempt at putting together a simple, highly available, caching
+This is my attempt at putting together a simple, horizontally scalable, caching
 service. The current behavior of this service is a bit peculiar, in that the
 keys that you want to cache must be registered with the service at startup. At
 this time entries can only be added or removed by reconfiguring and restarting 
