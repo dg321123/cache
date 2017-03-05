@@ -1,9 +1,8 @@
-import app_config
 import os
-import requests
-import sys
 
-from datetime import datetime
+import requests
+
+import app_config
 from linkparser import LinkParser
 from log import logger
 
@@ -43,7 +42,7 @@ def request_data(endpoint, request, timeout):
         try:
             r = requests.get(next_link, headers=headers, timeout=(3, timeout))
         except requests.exceptions.Timeout as e:
-            logger.warn('Request %s timed out after %d', next_link, timeout)
+            logger.warn('Request %s timed out after %f seconds.', next_link, timeout)
             return [598, response]
         except requests.exceptions.ConnectionError as e:
             logger.error('Caught %s', e.message)
@@ -80,6 +79,6 @@ def get_fresh_copy(key):
         source = leader_value.fqdn + ':' + str(leader_value.port)
         timeout = app_config.slave_timeout
 
-    logger.debug('Source endpoint is %s, timeout is %d', source, timeout)
+    logger.debug('Source endpoint is %s, timeout is %f seconds.', source, timeout)
 
     return request_data(source, key, timeout)

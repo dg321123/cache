@@ -70,14 +70,14 @@ def get_primed_cache():
     cache.add_observer('/orgs/Netflix/repos', watchers_observer)
 
     # Priming the cache by requesting data
-    [status_code, value] = cache.get('/')
-    [status_code, value] = cache.get('/orgs/Netflix')
-    [status_code, value] = cache.get('/orgs/Netflix/repos')
-    [status_code, value] = cache.get('/orgs/Netflix/members')
-    [status_code, forks] = cache.get('/view/forks')
-    [status_code, last_updated] = cache.get('/view/last_updated')
-    [status_code, open_issues] = cache.get('/view/open_issues')
-    [status_code, stars] = cache.get('/view/stars')
-    [status_code, watchers] = cache.get('/view/watchers')
+    cache.get('/')
+    cache.get('/orgs/Netflix')
+    cache.get('/orgs/Netflix/repos')
+    cache.get('/orgs/Netflix/members')
+    cache.get('/view/forks')
+    cache.get('/view/last_updated')
+    cache.get('/view/open_issues')
+    cache.get('/view/stars')
+    cache.get('/view/watchers')
 
     return cache

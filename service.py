@@ -7,6 +7,7 @@ import signal
 
 from cache import Cache
 from datetime import datetime, timedelta
+from cache_exceptions import KeyMissingFromCacheException
 from flask import Flask, jsonify, make_response, abort
 from leader_elector import LeaderElector
 from log import logger
@@ -59,7 +60,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
     parser.add_argument("-p", "--port", help="The port at which the server listens",
-                        type=int)
+                        type=int, required=True)
 
     args = parser.parse_args()
 
@@ -89,10 +90,10 @@ if __name__ == '__main__':
         logger.debug('Priming cache')
         _cache = primed_cache.get_primed_cache()
         retry = False
-    except (requests.exceptions.ConnectionError, redis.exceptions.ConnectionError) as e:
-        logger.error(e)
+    except (requests.exceptions.ConnectionError, redis.exceptions.ConnectionError, KeyMissingFromCacheException) as e:
+        logger.error('Terminating due to exception.')
         app_config.terminate_leader_elector_hb = True
         app_config.t.join(None)
-        exit(1)
+        raise e
 
     app.run(debug=False, port=args.port)

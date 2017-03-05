@@ -1,5 +1,6 @@
 import app_config
 from datetime import datetime, timedelta
+from cache_exceptions import KeyMissingFromCacheException
 from log import logger
 from request_data import request_data, get_fresh_copy
 
@@ -13,7 +14,7 @@ class Observer:
 
 
 # Reverse observer pattern to refresh the dependent cache, in cases where the
-# Observer has been requested and is stale. I call it the  Actor pattern.
+# Observer has been requested and is stale. I call it the Actor pattern.
 class Actor:
     def __init__(self, actors_key):
         self.key = actors_key
@@ -40,16 +41,21 @@ class Cache:
         if actors_key in self.cache:
             [old_val, attributes] = self.cache[actors_key]
             attributes.observers.append(observer)
+        else:
+            raise KeyMissingFromCacheException(actors_key)
+
         if observer.key in self.cache:
             [old_val, attributes] = self.cache[observer.key]
             attributes.actor.key = actors_key
+        else:
+            raise KeyMissingFromCacheException(observer.key)
 
     def put(self, key, new_val, time_to_expiry_seconds):
         old_val = ''
         attributes = Attributes()
 
         # Only while registering the keys in the cache, time_to_expiry_seconds
-        #  is less than zero.
+        # is less than zero.
         if time_to_expiry_seconds >= 0:
             attributes.refreshed = True
 
